@@ -2,7 +2,7 @@
 #Author Brian Caulkins 7.27.2024
 #v0.1.0
 
-import mokkari
+import mokkari, sqlite3
 
 #Metron username/password stored in separate config file
 from config import username, password
@@ -11,7 +11,7 @@ from config import username, password
 m = mokkari.api(username,password)
 
 #opens a file called barcodes. File has one barcode per line
-file = open('/home/brian/PythonPrograms/Comics/barcodes.txt','r')
+file = open('/home/brian/comics/barcodes.txt','r')
 content = file.readlines()
 
 #removes newline from barcode file and puts them into a new list called res
@@ -27,6 +27,26 @@ file.close()
 
 #upc = '70985301166806611'
 
+#database code
+
+# def create_sqlite_database(filename):
+#     """ create a database connection to an SQLite database """
+#     conn = None
+#     try:
+#         conn = sqlite3.connect(filename)
+#         print(sqlite3.sqlite_version)
+#     except sqlite3.Error as e:
+#         print(e)
+#     finally:
+#         if conn:
+#             conn.close()
+
+
+# if __name__ == '__main__':
+#     create_sqlite_database("comics.db")
+
+
+entries = {}
 #this section uses the barcodes to search the Metron database and return different pieces of data
 for i in res:
         #searches the issues_list schema using the upc field
@@ -42,7 +62,15 @@ for i in res:
 
               #returns the publiser id using the issue schema publisher id field
               p_id = m.publisher(c_id.publisher.id)
-
+              
+              entries[c_id.upc]={"metron_id":c_id.id,
+                              "issue":i.issue_name,
+                              "price":c_id.price,
+                              "series":s_id.name,
+                              "publisher":p_id.name,
+                              "issue_num":c_id.number,
+                              "cover_img_url":c_id.image,
+                              "upc":c_id.upc}
               #returns all the data using the issue, series and publisher calls
               print('Metron ID: '+ str(c_id.id) + 
                     '\n Issue: '+ i.issue_name +
@@ -52,3 +80,4 @@ for i in res:
                     '\n Issue #: '+str(c_id.number)+
                     '\n Img URL: '+c_id.image +
                     '\n')
+print(entries)
